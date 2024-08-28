@@ -27,5 +27,5 @@ The DC motor runs at medium speed.
 3)-Temperature ≤ 25°C:
 The DC motor is turned off.
 
-## NOTE :
+#### NOTE :
 This project is for learning and haven't yet implemented in real hardware but it works and give good results in proteus simulator(check veido).
