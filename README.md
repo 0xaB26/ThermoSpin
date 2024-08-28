@@ -4,7 +4,6 @@
 - LM35 temperature sensos.
 - DC motor.
 - LM016 LCD for displaying temperature and motor speed.
-- 
 The motor's speed is adjusted based on the temperature measured by the LM35 sensor.
 
 ### Project Components
