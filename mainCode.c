@@ -1,56 +1,56 @@
 #include<p18f452.h>
-#pragma config WDT = OFF
+#pragma config WDT = OFF				// NO WATCHDOG
 
-#define size 2
-#define voltageMap 1.5
-#define max 1023
-#define RS_PIN PORTCbits.RC5
-#define RW_PIN PORTCbits.RC6
-#define EN_PIN	PORTCbits.RC7
+#define size 		2
+#define voltageMap 	1.5				// VOLTAGE OF REFERENCE
+#define RESOLUTION 	1023				// MAXIMUM RESOLUTION
+#define RS_PIN 		LATCbits.RC5
+#define RW_PIN 		LATCbits.RC6
+#define EN_PIN		LATCbits.RC7
 
 
-typedef union tag
+typedef union tag				// TYPE_PUNNING 
 {
 	unsigned int result;
 	unsigned char bytes[size];
 }typePunning;
 
-typedef struct temp
+typedef struct temp				// STRUCTURE TO HOLD OLD AND NEW ADC CONVERSION
 {
 	unsigned char oldValue;
 	unsigned char newValue;
 }tempeRature;
 
 
-void acquisitionTime(void);
-void convertingAdc(void);
-void compareTempPwm(unsigned char temp);
-void commandInstruction(void);
-void dataInstruction(void);
-void delay450_us(void);
-void delay250_ms(void);
-void displayResult(unsigned char temp);
-void displayString(void);
-void busyFlag(void);
-void lcdInitialization(void);
-void printLcd(unsigned char value);
-void clearDdramAddress(unsigned char dilimiter);
-void firstAdress(void);
-void addressOfTemp(void);
-void addressOfMotor(void);
-void speedValue(unsigned char flag);
+void acquisitionTime(void);				// TIME NEEDED FOR CHARGING CAPACITOR
+void convertingAdc(void);				// ADC CONVERSION
+void compareTempPwm(unsigned char temp);		// SET THE PWM BASED ON THE TEMPERATURE
+void commandInstruction(void);				// LCD COMMAND
+void dataInstruction(void);				// LCD DATA
+void delay450_us(void);					// GENERATING 450 US DELAY
+void delay250_ms(void);					// GENERATING 250 MS DELAY
+void displayResult(unsigned char temp);			// DISPLAY RESULT IN LCD
+void displayString(void);				// DISPLAY STRING
+void busyFlag(void);					// CHECK BUSY FLAG
+void lcdInitialization(void);				// LCD INITIALIZATION
+void printLcd(unsigned char value);			
+void clearDdramAddress(unsigned char dilimiter);	// CLEAR LCD
+void firstAdress(void);					// ADDRESS OF FIRST LINE
+void addressOfTemp(void);				
+void addressOfMotor(void);			
+void speedValue(unsigned char flag);			
 
 #pragma interrupt interruptServiceRoutine
-void interruptServiceRoutine(void)
+void interruptServiceRoutine(void)			// ISR
 {
-	if(PIR1bits.ADIF)
+	if(PIR1bits.ADIF)				// CHECK IF ADC TRIGGERS AN INTERRUPT
 	{
 		PIR1bits.ADIF = 0;
 		convertingAdc();
 		acquisitionTime();
 		ADCON0bits.GO = 1;
 	}
-	else if(PIR1bits.TMR2IF)
+	else if(PIR1bits.TMR2IF)			// CHECK IF TIMER 2 TRIGGERS INTERRUPT
 	{	
 		PIR1bits.TMR2IF = 0;
 		TMR2 = 0;
@@ -69,25 +69,25 @@ void interruptAdress(void)
 
 void main(void)
 {
-	TRISAbits.TRISA5 = 1;
-	TRISD = 0x00;
-	TRISC = 0x1B;
-	INTCONbits.GIE = 1;
-	INTCONbits.PEIE = 1;
-	PIE1bits.ADIE = 1;
+	TRISAbits.TRISA5 = 1;			// RA5 AS INPUT
+	TRISD = 0x00;				// PORTD AS OUTPUT
+	TRISC = 0x1B;			
+	INTCONbits.GIE = 1;			// ENABLE GLOBAL INTERRUPT
+	INTCONbits.PEIE = 1;	
+	PIE1bits.ADIE = 1;			// ENABLE ADC INTERRUPT
 	PIR1bits.ADIF = 0;
-	PIE1bits.TMR2IE = 1;
+	PIE1bits.TMR2IE = 1;			// ENABLE TIMER 2 INTERRUPT
 	PIR1bits.TMR2IF = 0;
-	ADCON0 = 0x61;
+	ADCON0 = 0x61;				
 	ADCON1 = 0x8A;
-	PR2 = 187;
+	PR2 = 187;				// THE FULL PERIOD
 	T2CON = 0x03;
 	TMR2 = 0;	
-	CCPR1L = 0;
+	CCPR1L = 0;		
 	lcdInitialization();
 	displayString();
 	acquisitionTime();
-	ADCON0bits.GO = 1;
+	ADCON0bits.GO = 1;			// START CONVERSION
 	while(1);
 }
 
@@ -107,29 +107,29 @@ void convertingAdc(void)
 	static unsigned char state = 0;
 	typePunning adcValue;
 	static tempeRature tempValue;
-	adcValue.bytes[0] = ADRESL;
-	adcValue.bytes[1] = ADRESH;
+	adcValue.bytes[0] = ADRESL;				// PUT LSB AT SMALLEST INDEX
+	adcValue.bytes[1] = ADRESH;				// PUT MSB AT LARGEST INDEX
 	if(!state)
 	{
 		state = 1;
-		tempValue.oldValue = ((adcValue.result*voltageMap)/max)*100;
+		tempValue.oldValue = ((adcValue.result*voltageMap)/RESOLUTION)*100;
 		displayResult(tempValue.oldValue);
 		compareTempPwm(tempValue.oldValue);
 	}
 	else
 	{
-		tempValue.newValue = ((adcValue.result*voltageMap)/max)*100;
-		if(tempValue.newValue != tempValue.oldValue)
+		tempValue.newValue = ((adcValue.result*voltageMap)/RESOLUTION)*100;
+		if(tempValue.newValue != tempValue.oldValue)					// CHECK IF TEMPERATURE CHANGED ?
 		{
 			tempValue.oldValue = tempValue.newValue;
 			addressOfTemp();
-			clearDdramAddress(11);
+			clearDdramAddress(11);							// CLEAR 11 POSITION IN LCD
 			displayResult(tempValue.oldValue);
 			compareTempPwm(tempValue.oldValue);
 		}
 	}
 }
-void addressOfTemp(void)
+void addressOfTemp(void)							
 {
 	LATD = 0x85;
 	commandInstruction();
@@ -152,7 +152,7 @@ void clearDdramAddress(unsigned char dilimiter)
 	unsigned char i = 0;
 	while(i < dilimiter)
 	{
-		LATD = 0x20;
+		LATD = 0x20;				// SPACE
 		dataInstruction();
 		busyFlag();
 		++i;
@@ -224,8 +224,8 @@ void displayResult(unsigned char temp)
 	stack[++TOP] = ' ';
 	while(temp != 0)
 	{
-		stack[++TOP] = temp%10+0x30;
-		temp/=10;	
+		stack[++TOP] = (temp % 10) + 0x30;
+		temp /= 10;	
 	}
 	while(TOP != -1)
 		printLcd(stack[TOP--]);
@@ -271,7 +271,7 @@ void busyFlag(void)
 }
 void compareTempPwm(unsigned char temp)
 {
-	if(temp > 40 && temp <= 150)
+	if(temp > 40 && temp <= 150)	
 	{
 		CCP1CON = 0x0E;	
 		CCPR1L = 180;
