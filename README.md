@@ -8,12 +8,12 @@
 The motor's speed is adjusted based on the temperature measured by the LM35 sensor.
 
 ### Project Components
-Microcontroller: PIC18F452
-Compiler: C18
-Simulator : Proteus
-Temperature Sensor: LM35
-Motor Type: DC Motor
-LCD Display: LM016 (16x2)
+- Microcontroller: PIC18F452
+- Compiler: C18
+- Simulator : Proteus
+- Temperature Sensor: LM35
+- Motor Type: DC Motor
+- LCD Display: LM016 (16x2)
 
 #### Project Description
 This system monitors the ambient temperature using the LM35 temperature sensor. Based on the measured temperature, it controls the speed of a DC motor as follows:
