@@ -28,4 +28,4 @@ The DC motor runs at medium speed.
 The DC motor is turned off.
 
 #### NOTE :
-This project is for learning and haven't yet implemented in real hardware but it works and give good results in proteus simulator(check vedio).
+This project is for learning and haven't yet implemented in real hardware but it works and give good results in proteus simulator(check [@video](https://github.com/0xaB26/ThermoSpin/blob/main/simulation.mp4)).
