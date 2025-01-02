@@ -258,9 +258,9 @@ void busyFlag(void)
 	RW_PIN = 1;
 	while(1)	
 	{
-		EN_PIN = 0;
-		delay450_us();
 		EN_PIN = 1;
+		delay450_us();
+		EN_PIN = 0;
 		if(!PORTDbits.RD7)	
 		{
 			TRISDbits.TRISD7 = 0;
